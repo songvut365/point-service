@@ -1,0 +1,8 @@
+PRODUCER point-service
+topic: success.order
+{
+    "order_id": 1,
+    "product_id": 1
+}
+
+###
