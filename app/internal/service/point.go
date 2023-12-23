@@ -52,7 +52,7 @@ func (service *pointService) DecreasePoint(ctx context.Context, successOrder mod
 			return errors.Wrap(err, "decrease gold point error")
 		}
 
-	case product.Price >= 101 && successOrder.Price <= 1000:
+	case product.Price >= 101 && product.Price <= 1000:
 		decreasePointSuccess.PointLevel = constant.SILVER
 
 		err := service.pointRepository.DecreaseSilverPoint(ctx)

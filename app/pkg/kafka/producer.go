@@ -8,7 +8,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Producer struct {
+type Producer interface {
+	SendMessage(topic string, message string, headers map[string]string) error
+	CloseConnection() error
+}
+
+type producer struct {
 	SyncProducer sarama.SyncProducer
 	logEnable    bool
 }
@@ -22,15 +27,15 @@ func NewProducer(addresses []string) (Producer, error) {
 
 	syncProducer, err := sarama.NewSyncProducer(addresses, kafkaConfig)
 	if err != nil {
-		return Producer{}, errors.Wrap(err, "new producer sarama error")
+		return producer{}, errors.Wrap(err, "new producer sarama error")
 	}
 
-	return Producer{
+	return producer{
 		SyncProducer: syncProducer,
 	}, nil
 }
 
-func (producer Producer) SendMessage(topic string, message string, headers map[string]string) error {
+func (producer producer) SendMessage(topic string, message string, headers map[string]string) error {
 	if headers == nil {
 		headers = map[string]string{}
 	}
@@ -69,6 +74,6 @@ func (producer Producer) SendMessage(topic string, message string, headers map[s
 	return nil
 }
 
-func (producer Producer) CloseConnection() error {
+func (producer producer) CloseConnection() error {
 	return producer.SyncProducer.Close()
 }
