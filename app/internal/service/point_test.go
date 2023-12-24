@@ -13,27 +13,26 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+type Key string
+
 type PointServiceTestSuite struct {
 	suite.Suite
 	pointService service.PointService
 
-	ctxDecreaseBronzeError *context.Context
-	ctxDecreaseSilverError *context.Context
-	ctxDecreaseGoldError   *context.Context
+	ctxDecreaseBronzeError context.Context
+	ctxDecreaseSilverError context.Context
+	ctxDecreaseGoldError   context.Context
 }
 
 func (suite *PointServiceTestSuite) SetupTest() {
-	ctxDecreaseBronzeError := context.WithValue(context.Background(), "error", "bronze")
-	ctxDecreaseSilverError := context.WithValue(context.Background(), "error", "silver")
-	ctxDecreaseGoldError := context.WithValue(context.Background(), "error", "gold")
-	suite.ctxDecreaseBronzeError = &ctxDecreaseBronzeError
-	suite.ctxDecreaseSilverError = &ctxDecreaseSilverError
-	suite.ctxDecreaseGoldError = &ctxDecreaseGoldError
+	suite.ctxDecreaseBronzeError = context.WithValue(context.Background(), Key("error"), "bronze")
+	suite.ctxDecreaseSilverError = context.WithValue(context.Background(), Key("error"), "silver")
+	suite.ctxDecreaseGoldError = context.WithValue(context.Background(), Key("error"), "gold")
 
 	pointRepository := new(mockRepository.PointRepository)
-	pointRepository.On("DecreaseBronzePoint", ctxDecreaseBronzeError).Return(errors.New("decrease bronze error"))
-	pointRepository.On("DecreaseSilverPoint", ctxDecreaseSilverError).Return(errors.New("decrease silver error"))
-	pointRepository.On("DecreaseGoldPoint", ctxDecreaseGoldError).Return(errors.New("decrease gold error"))
+	pointRepository.On("DecreaseBronzePoint", suite.ctxDecreaseBronzeError).Return(errors.New("decrease bronze error"))
+	pointRepository.On("DecreaseSilverPoint", suite.ctxDecreaseSilverError).Return(errors.New("decrease silver error"))
+	pointRepository.On("DecreaseGoldPoint", suite.ctxDecreaseGoldError).Return(errors.New("decrease gold error"))
 	pointRepository.On("DecreaseBronzePoint", context.Background()).Return(nil)
 	pointRepository.On("DecreaseSilverPoint", context.Background()).Return(nil)
 	pointRepository.On("DecreaseGoldPoint", context.Background()).Return(nil)
@@ -128,7 +127,7 @@ func (suite *PointServiceTestSuite) TestPointService_DecreaseBronzeError() {
 		ProductId: 3,
 	}
 
-	err := suite.pointService.DecreasePoint(*suite.ctxDecreaseBronzeError, successOrder)
+	err := suite.pointService.DecreasePoint(suite.ctxDecreaseBronzeError, successOrder)
 	suite.NotNil(err)
 }
 
@@ -138,7 +137,7 @@ func (suite *PointServiceTestSuite) TestPointService_DecreaseSilverError() {
 		ProductId: 2,
 	}
 
-	err := suite.pointService.DecreasePoint(*suite.ctxDecreaseSilverError, successOrder)
+	err := suite.pointService.DecreasePoint(suite.ctxDecreaseSilverError, successOrder)
 	suite.NotNil(err)
 }
 
@@ -148,7 +147,7 @@ func (suite *PointServiceTestSuite) TestPointService_DecreaseGoldError() {
 		ProductId: 1,
 	}
 
-	err := suite.pointService.DecreasePoint(*suite.ctxDecreaseGoldError, successOrder)
+	err := suite.pointService.DecreasePoint(suite.ctxDecreaseGoldError, successOrder)
 	suite.NotNil(err)
 }
 
