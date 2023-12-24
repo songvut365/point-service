@@ -1,7 +1,7 @@
 # Point Service
 
 ## Architecture
-![archiecture](docs/arch.jpg)
+![architecture](docs/arch.jpg)
 
 ## Unit Test
 You can run the tests using the following command:
