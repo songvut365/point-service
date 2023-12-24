@@ -43,7 +43,7 @@ func (repository *pointRepository) DecreaseGoldPoint(ctx context.Context) error 
 }
 
 func (repository *pointRepository) decreasePoint(ctx context.Context, level string) error {
-	attempt := 0
+	attempt := 1
 
 	tx := repository.db.Begin().WithContext(ctx)
 	defer func() {
