@@ -3,6 +3,7 @@ module point-service
 go 1.21.3
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.1
 	github.com/IBM/sarama v1.42.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
