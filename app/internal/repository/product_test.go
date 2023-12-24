@@ -15,14 +15,11 @@ import (
 
 type ProductRepositoryTestSuite struct {
 	suite.Suite
-	repository repository.ProductRepository
 }
 
 func (suite *ProductRepositoryTestSuite) SetupTest() {}
 
 func (suite *ProductRepositoryTestSuite) setupDbMockCustomTrx(process func(sqlmock.Sqlmock)) *gorm.DB {
-	var err error
-
 	// new mock instance
 	mockDb, sqlMock, err := sqlmock.New()
 	if err != nil {
