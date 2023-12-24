@@ -19,24 +19,42 @@ type PointServiceTestSuite struct {
 	suite.Suite
 	pointService service.PointService
 
+	pointRepository   *mockRepository.PointRepository
+	productRepository *mockRepository.ProductRepository
+	producer          *mockKafka.Producer
+
 	ctxDecreaseBronzeError context.Context
 	ctxDecreaseSilverError context.Context
 	ctxDecreaseGoldError   context.Context
 }
 
 func (suite *PointServiceTestSuite) SetupTest() {
+	suite.setupMockPointRepository()
+	suite.setupMockProductRepository()
+	suite.setupMockProducer()
+
+	suite.pointService = service.NewPointService(suite.pointRepository, suite.productRepository, suite.producer, "decrease.point.success")
+}
+
+func (suite *PointServiceTestSuite) setupMockPointRepository() {
+	pointRepository := new(mockRepository.PointRepository)
+
 	suite.ctxDecreaseBronzeError = context.WithValue(context.Background(), Key("error"), "bronze")
 	suite.ctxDecreaseSilverError = context.WithValue(context.Background(), Key("error"), "silver")
 	suite.ctxDecreaseGoldError = context.WithValue(context.Background(), Key("error"), "gold")
 
-	pointRepository := new(mockRepository.PointRepository)
 	pointRepository.On("DecreaseBronzePoint", suite.ctxDecreaseBronzeError).Return(errors.New("decrease bronze error"))
 	pointRepository.On("DecreaseSilverPoint", suite.ctxDecreaseSilverError).Return(errors.New("decrease silver error"))
 	pointRepository.On("DecreaseGoldPoint", suite.ctxDecreaseGoldError).Return(errors.New("decrease gold error"))
+
 	pointRepository.On("DecreaseBronzePoint", context.Background()).Return(nil)
 	pointRepository.On("DecreaseSilverPoint", context.Background()).Return(nil)
 	pointRepository.On("DecreaseGoldPoint", context.Background()).Return(nil)
 
+	suite.pointRepository = pointRepository
+}
+
+func (suite *PointServiceTestSuite) setupMockProductRepository() {
 	productRepository := new(mockRepository.ProductRepository)
 	productRepository.On("GetProductById", mock.Anything, uint(1)).Return(model.Product{Name: "mobile suite", Price: 1500}, nil)
 	productRepository.On("GetProductById", mock.Anything, uint(2)).Return(model.Product{Name: "jaeger", Price: 800}, nil)
@@ -44,15 +62,17 @@ func (suite *PointServiceTestSuite) SetupTest() {
 	productRepository.On("GetProductById", mock.Anything, uint(4)).Return(model.Product{}, errors.New("get product error"))
 	productRepository.On("GetProductById", mock.Anything, uint(5)).Return(model.Product{Name: "negative", Price: -289.2}, nil)
 
+	suite.productRepository = productRepository
+}
+
+func (suite *PointServiceTestSuite) setupMockProducer() {
 	producer := new(mockKafka.Producer)
-	// producer.On("SendMessage", "decrease.point.success", mock.Anything, mock.Anything).Return(nil)
 	producer.On("SendMessage", "decrease.point.success", `{"order_id":1,"point_level":"gold"}`, mock.Anything).Return(nil)
 	producer.On("SendMessage", "decrease.point.success", `{"order_id":2,"point_level":"silver"}`, mock.Anything).Return(nil)
 	producer.On("SendMessage", "decrease.point.success", `{"order_id":3,"point_level":"bronze"}`, mock.Anything).Return(nil)
 	producer.On("SendMessage", "decrease.point.success", `{"order_id":5,"point_level":"gold"}`, mock.Anything).Return(errors.New("produce message error"))
 
-	suite.pointService = service.NewPointService(pointRepository, productRepository, producer, "decrease.point.success")
-
+	suite.producer = producer
 }
 
 func (suite *PointServiceTestSuite) TestPointService_HappyCase_DecreaseGold() {
