@@ -60,7 +60,7 @@ func (service *pointService) DecreasePoint(ctx context.Context, successOrder mod
 			return errors.Wrap(err, "decrease silver point error")
 		}
 
-	case product.Price <= 100:
+	case product.Price <= 100 && product.Price > 0:
 		decreasePointSuccess.PointLevel = constant.BRONZE
 
 		err := service.pointRepository.DecreaseBronzePoint(ctx)
@@ -73,10 +73,7 @@ func (service *pointService) DecreasePoint(ctx context.Context, successOrder mod
 	}
 
 	// produce decrease point result for increase user point
-	decreasePointSuccessJson, err := json.Marshal(decreasePointSuccess)
-	if err != nil {
-		return errors.Wrap(err, "marshal increase point error")
-	}
+	decreasePointSuccessJson, _ := json.Marshal(decreasePointSuccess)
 
 	decreasePointSuccessHeader := map[string]string{}
 
